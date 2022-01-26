@@ -28,6 +28,7 @@ router.post("/practice", (req, res) => {
   // 생각해보자
   res.send("채굴 시작!");
 });
+
 router.get("/userSession", async (req, res) => {
   try {
     const user = await Users.findOne({

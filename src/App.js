@@ -1,8 +1,14 @@
 import "./App.css";
 import React from "react";
+import { useForm } from "react-hook-form";
+import { useState } from "react";
 import { Link } from "react-router-dom";
+import axios from "axios";
 
 function App() {
+  const [isRedirect, setIsRedirect] = useState(false);
+  const { register, handleSubmit } = useForm();
+
   const onSubmit = async (data) => {
     try {
       await axios.post("http://localhost:3001/practice", data);
