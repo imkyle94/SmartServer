@@ -1,25 +1,24 @@
 // 클라이언트가 받을 데이터에 대한 처리
 
-function data(data) {
+function clientData(data) {
+  // 이런 애들은 클라가 요청했으니까
+
+  let result = data;
+  console.log(result);
+
   if (data[0] == "getBlocks") {
+    result.shift();
     // 그니까 data[0] 제외한것만
     // 사실 그냥 다쏴줘도 괜찮긴해
-    return data[1];
+    return result;
   }
-  for (a in data) {
-    //   어떠한 처리
 
-    if (a) {
-      // 최신화가 필요한지 아닌지에 대한 판단
-      // 함수 입력받아서 데이터 가져오기
-    }
-
-    // 블록가져오기
-    // 블록 최신화하기
-
-    // 채굴하기
-    // 돌릴거고
+  // 얘는 공지 느낌으로다가 브로드캐스트 일때
+  else if (data[0] == "broadcast_go_blocks") {
+    // 블록 검증하기
+  } else if (data[0] == "broadcast_success_blocks") {
+    // 내 로컬에 최신화 하기
   }
 }
 
-module.exports = { data };
+module.exports = { clientData };

@@ -1,5 +1,5 @@
 const net = require("net");
-const { data } = require("./serverData");
+const { serverData } = require("./serverData");
 
 let number = 0;
 let clients = [];
@@ -17,17 +17,19 @@ const server = net.createServer(function (client) {
   });
 
   client.on("data", function (data) {
-    const data1 = data.toString();
-    let result = [];
-    //   함수를 불러서 데이터 처리를 해주고
-    // 함수(data)
-    // console.log("서버에 들어옴" + data);
-    // const result = data(data);
-    result.push(client);
-
-    // let result1 = JSON.stringify(result);
-    result1 = "메롱";
-    client.write(result1);
+    const confirm = JSON.parse(data);
+    let result;
+    if (confirm[0] == "broadcast") {
+      result = serverData(data);
+      const result1 = JSON.stringify(result);
+      clients.forEach(function (client) {
+        client.write(result1);
+      });
+    } else {
+      result = serverData(data);
+      const result1 = JSON.stringify(result);
+      client.write(result1);
+    }
   });
 
   client.on("end", function () {

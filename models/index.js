@@ -4,6 +4,7 @@ const Sequelize = require("sequelize");
 // Model 불러오기
 const Users = require("./users");
 const Blocks = require("./blocks");
+const Transactions = require("./transactions");
 
 const env = process.env.NODE_ENV || "development";
 
@@ -24,13 +25,16 @@ db.Sequelize = Sequelize;
 db.sequelize = sequelize;
 db.Users = Users;
 db.Blocks = Blocks;
+db.Transactions = Transactions;
 
 // MySQL에 모델 넣기
 Users.init(sequelize);
 Blocks.init(sequelize);
+Transactions.init(sequelize);
 
 // 관계 설정
 Users.associate(db);
 Blocks.associate(db);
+Transactions.associate(db);
 
 module.exports = db;
