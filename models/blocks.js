@@ -48,3 +48,8 @@ module.exports = class Blocks extends Sequelize.Model {
   // 테이블간 관계 설정
   static associate(db) {}
 };
+//   db.Blocks.hasMany(db.Transactions, {
+//     foreignKey: "index",
+//     sourceKey: "index",
+//   });
+// }

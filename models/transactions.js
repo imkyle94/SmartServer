@@ -1,35 +1,23 @@
 const Sequelize = require("sequelize");
 
-module.exports = class Blocks extends Sequelize.Model {
+module.exports = class Transactions extends Sequelize.Model {
   static init(sequelize) {
     return super.init(
       {
-        version: {
-          allowNull: true,
-          type: Sequelize.STRING(500),
-        },
         index: {
           //   primaryKey: true,
           type: Sequelize.INTEGER,
           allowNull: true,
         },
-        previousHash: {
+        in: {
           allowNull: true,
           type: Sequelize.STRING(500),
         },
-        timestamp: {
-          allowNull: true,
-          type: Sequelize.INTEGER,
-        },
-        merkleRoot: {
+        out: {
           allowNull: true,
           type: Sequelize.STRING(500),
         },
-        difficulty: {
-          allowNull: true,
-          type: Sequelize.INTEGER,
-        },
-        nonce: {
+        price: {
           allowNull: true,
           type: Sequelize.INTEGER,
         },
@@ -46,5 +34,10 @@ module.exports = class Blocks extends Sequelize.Model {
   }
 
   // 테이블간 관계 설정
-  static associate(db) {}
+  static associate(db) {
+    db.Transactions.belongsTo(db.Blocks, {
+      foreignKey: "index",
+      sourceKey: "index",
+    });
+  }
 };

@@ -21,6 +21,8 @@ bcclient.on("end", function () {
 // 웹에서의 어떠한 요청이 들어오는걸
 // 여기에서 다 받아서 write 해주자
 
+// 트랜잭션을 서버로 우선 쏘는 걸 할건데
+
 // result.push("realTransactions");
 result.push("broadcast");
 result.push(tr);

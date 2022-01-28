@@ -10,16 +10,24 @@ const Transactions = require("./models/transactions");
 // 다른 요청들은 자기 DB에 쓰기
 function serverData(data) {
   let abc = JSON.parse(data);
+  // let abc = data;
   let result = [];
 
   // 이제 전처리 해주자
   if (abc[0] == "broadcast") {
-    if (abc[1] == "go_blocks") {
-      // 내 로컬에 있는 블록 쏴주기
-      // 로컬 어디에 저장되어있지? 교수님께 물어보기
-      return 123;
-    } else if (abc[1] == "success_blocks") {
+    if (abc[1] == "findBㄴㄴlock") {
+      result.push("broadcast");
+      result.push("findBlock");
+      result.push(abc);
+      return result;
+    } else if (abc[1] == "correct") {
+      result.push(correct);
+      return "go";
+    } else if (abc[1] == "blockok") {
+      num++;
     } else {
+      // 여기서 서버가 db올라는 행위 할것임
+      // Blocks.create();
       result.push("broadcast");
       // 여기서 데이터 처리
       return result;
@@ -44,19 +52,16 @@ function serverData(data) {
   }
   // 클라이언트에서 트랜잭션들이 넘어올 때
   else if (abc[0] == "realTransactions") {
-    // 일단 거래들이 풀에서 잘 넘어왔다고 가정을 하자
-    // 난 아직 풀은 못봤으니까
-    // 일단 세션에 있으면(최신화) 그거 넘겨주기
-    // 안되면 DB
-    // if (session) result;
-    // 얘를 DB에 저장을 해야하나?
-    // 해야 될 거 같은데?
+    // 풀에 넣자
+    // return 데이터;
+    return;
+  } else if (abc[0] == "update") {
+    result.push("update");
 
-    // 넘어온 데이터를 가지고 DB생성하기
-    // Transactions.create({});
-
-    // 잘 됐다고 1쏴줬음 일단
-    return 1;
+    // 시퀄라이즈 연결 안했으니까
+    // const block = Blocks.findAll();
+    result.push("block");
+    return result;
   }
 }
 
