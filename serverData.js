@@ -1,3 +1,5 @@
+const fs = require("fs");
+
 const Blocks = require("./models/blocks");
 const Transactions = require("./models/transactions");
 
@@ -8,60 +10,55 @@ const Transactions = require("./models/transactions");
 // 서버 입장에서
 // get요청은 쏴줄 데이터 return해주기
 // 다른 요청들은 자기 DB에 쓰기
-function serverData(data) {
-  let abc = JSON.parse(data);
-  // let abc = data;
-  let result = [];
-
-  // 이제 전처리 해주자
-  if (abc[0] == "broadcast") {
-    if (abc[1] == "findBㄴㄴlock") {
-      result.push("broadcast");
-      result.push("findBlock");
-      result.push(abc);
-      return result;
-    } else if (abc[1] == "correct") {
-      result.push(correct);
-      return "go";
-    } else if (abc[1] == "blockok") {
-      num++;
-    } else {
-      // 여기서 서버가 db올라는 행위 할것임
-      // Blocks.create();
-      result.push("broadcast");
-      // 여기서 데이터 처리
+async function serverData(data) {
+  // 브로드캐스트 요청
+  if (data[0] == "broadcast") {
+    if (data[1] == "findBlock") {
+      const data1 = data.slice();
+      data1.shift();
+      data1.shift();
+      const result = ["broadcast", "govalidblock", ...data1];
       return result;
     }
-  } else if (abc[0] == "nowPeople") {
-    return result;
-  } else if (abc[0] == "getBlocks") {
-    result.push("getBlocks");
-
-    const block = Blocks.findOne();
-    result.push(block);
-    // 서버가 가지고 있는 블록을 보내줄 건데
-    // 일단 이건 인덱스 서버에 db가 따로 설정 되어있다고 가정하자
-
-    return result;
-    //
-    // 여기서 데이터 처리
-  } else if (abc[0] == "getTransactions") {
-    const db = Transactions.findAll({});
-    result.push(db);
-    return result;
   }
-  // 클라이언트에서 트랜잭션들이 넘어올 때
-  else if (abc[0] == "realTransactions") {
-    // 풀에 넣자
-    // return 데이터;
-    return;
-  } else if (abc[0] == "update") {
-    result.push("update");
+  // 브로드캐스트 외 요청
+  else {
+    if (data[0] == "initConnect") {
+      const result = [];
+      result.push("initConnect");
+      const block = await Blocks.findAll();
+      result.push(block);
 
-    // 시퀄라이즈 연결 안했으니까
-    // const block = Blocks.findAll();
-    result.push("block");
-    return result;
+      return result;
+    } else if (data[0] == "update") {
+      const result = [];
+      result.push("update");
+      const block = await Blocks.findAll();
+
+      // if (data[1] < block.length) {
+      // result.push(block);
+      // }
+
+      result.push(block);
+      return result;
+    } else if (data[0] == "getBlocks") {
+      // 일단 이런거 해주긴 하는데 쓸데는 크게 없다
+      const result = [];
+      return result;
+    } else if (data[0] == "getTransactions") {
+      const db = Transactions.findAll({});
+      const result = [];
+      result.push(db);
+      return result;
+    }
+    // 2 거래소에서 트랜잭션들이 넘어올 때
+    else if (data[0] == "realTransactions") {
+      // 여기서 풀에 넣는 행위 할 거임
+      // 이건 p2pserver에서 전역으로 관리해야겠네
+      // 풀에 넣자(pool)
+      // return 데이터;
+      return;
+    }
   }
 }
 

@@ -4,96 +4,89 @@ const Blocks = require("./models/blocks");
 const Transactions = require("./models/transactions");
 const fs = require("fs");
 
-let number = 0;
-let vote = 0;
+const { sequelize } = require("./models/index.js");
+
+// DB와 연결
+sequelize
+  // sync : MySQL에 테이블이 존재 하지 않을때 생성
+  //      force: true   => 이미 테이블이 있으면 drop하고 다시 테이블 생성
+  .sync({ force: false })
+  .then(() => {
+    console.log("Database connected successfully");
+  })
+  .catch((err) => {
+    console.error(err);
+  });
+
 let clients = [];
+let vote = 0;
 let transactions = [];
 let block = [];
+let pool = [];
 
 const server = net.createServer(function (client) {
   console.log("서버 연결");
 
-  fs.writeFileSync(`./local/${client.remotePort}.txt`, "utf-8", (err) => {});
+  // 처음 연결시 자기 파일 생성
+  // 연습하려고
+  fs.writeFileSync(
+    `./local/${client.remotePort}.txt`,
+    "hi",
+    "utf8",
+    (err) => {}
+  );
 
-  number++;
   clients.push(client);
-  console.log(clients.length);
 
-  client.on("connect", function () {
-    number++;
-    // clients.push(client);
-    console.log("총 접속자", number);
-  });
+  client.on("data", async function (data) {
+    const data1 = JSON.parse(data);
+    const result = await serverData(data1);
 
-  client.on("data", function (data) {
-    const confirm = JSON.parse(data);
-    let result;
-    if (confirm[0] == "broadcast") {
-      if (confirm[1] == "findBlock") {
-        let a2 = confirm.slice();
-        a2.shift();
-        a2.shift();
-        block = [...a2];
-
-        const result3 = JSON.stringify(confirm);
-
+    // 클라에서 브로드캐스트 요청했을 때
+    if (data1[0] == "broadcast") {
+      if (result[1] == "govalidblock") {
+        const result1 = JSON.stringify(result);
         clients.forEach(function (client) {
-          client.write(result3);
+          client.write(result1);
         });
-      } else if (confirm[1] == "validok") {
+      } else if (data1[1] == "validok") {
         vote++;
         // 51퍼
         if (vote / clients.length >= 0.51) {
-          vote = 0;
-          // 여기에서 트랜잭션풀에서 블록으로 들어가는 걸 해야할 것같은데?
-          // 블록처리
-          // 걍 써논 거 구조 처리 제대로 해야함
-          // block.push(transactions);
-          let result4 = [];
-
-          // 블록 수정에 대한건 나중으로 하고
-          // 일단 create만
-
-          // 헤드만 뽑아야해
-          // 요딴 식으로
           // for (abc in a[0]) {
           //   console.log(a[0][abc]);
           // }
           // Blocks.create(block);
 
-          // 여기에서도 데이터를 쏴줄 수도 있고
-          // 데이터 올라왔으니 인덱스 서버에 업데이트 요청해서 바꿔라
-          // 이렇게 만들어도 댐 방법은 여러가지임
+          let result1 = [
+            "broadcast",
+            "goupdateblock",
+            client.remotePort,
+            ...block,
+          ];
 
-          result4 = ["broadcast", "blockok", client.remotePort, ...block];
-
-          // console.log(result4);
-          const result5 = JSON.stringify(result4);
+          const result2 = JSON.stringify(result1);
           block = transactions = [];
+          vote = 0;
 
-          console.log("블록 성공!");
-
+          console.log("블록 이어붙이기 성공!");
           clients.forEach(function (client) {
-            client.write(result5);
+            client.write(result2);
           });
         } else {
-          console.log("51퍼가 안되었다오");
+          console.log("서버에서 보려고 쓴거임 51퍼가 안되었다오");
         }
       }
-    } else if (confirm[0] == "initConnect") {
-      let aq = [];
-      aq.push("initConnect");
-      aq.push(client.remotePort);
-      const result1 = JSON.stringify(aq);
-      client.write(result1);
-    } else {
-      result = serverData(data);
-      const result1 = JSON.stringify(result);
-
-      // 이부분 통일성주려면 serverData에 하는게 맞긴해
-      if (result[0] == "realTransaction") {
-        transactions.push(result);
+    }
+    // 브로드캐스트 외 요청했을 때
+    else {
+      if (result[0] == "initConnect") {
+        result.push(client.remotePort);
       }
+      if (result[0] == "update") {
+        result.push(client.remotePort);
+      }
+      const result1 = JSON.stringify(result);
       client.write(result1);
     }
   });

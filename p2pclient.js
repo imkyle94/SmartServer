@@ -4,34 +4,14 @@ const net = require("net");
 const fs = require("fs");
 const path = require("path");
 
+var port;
 const { clientData } = require("./clientData");
 
-const { nextBlock } = require("./chainedBlock");
+const { initBlocks, nextBlock } = require("./chainedBlock");
 // const { addBlock } = require("./checkValidBlock");
 
-let port;
-
 const clientEvent = new events.EventEmitter();
-
-clientEvent.on("broadcast", function (data) {
-  let result = [];
-  result.push("broadcast");
-  result.push(data);
-  // 들어올 데이터를 파악해보면, 블록, 트랜잭션, 아니면 추가될수 도있지
-  // 이를 처리해주는 코드가 여기 들어가야함 일단 블록, 트랜잭션(그니까 객체 형태만)
-  // 순번을 매기려했는데 그냥 이름 그대로 배열에 넣는게 더 보기 쉬울듯
-  // 얘네들이 serverData 로 가는거니까
-  client.write(result);
-});
-
 // clientEvent.emit으로 실행시킨다
-
-clientEvent.on("nowPeople", function () {
-  let result = [];
-  result.push("nowPeople");
-  let result1 = result.toString();
-  client.write(result1);
-});
 
 clientEvent.on("getBlocks", function () {
   let result = [];
@@ -64,6 +44,30 @@ clientEvent.on("update", function () {
   // const length = fs.readFileSync
   let result = [];
   result.push("update");
+
+  const size = fs.statSync(`./local/${port}.txt`).size;
+  result.push(size);
+
+  console.log(size);
+  const result1 = JSON.stringify(result);
+  client.write(result1);
+});
+
+clientEvent.on("initConnect", function () {
+  let result = [];
+  result.push("initConnect");
+  const result1 = JSON.stringify(result);
+  client.write(result1);
+});
+
+clientEvent.on("login", function () {
+  let result = [];
+  result.push("login");
+
+  const local = fs.readFileSync(`./local/${a}.txt`, "utf8", (err) => {});
+  // 지금은 다받았는데 그럺필요 없고 길이만 받으면 댐
+
+  result.push(local);
   const result1 = JSON.stringify(result);
   client.write(result1);
 });
@@ -87,17 +91,13 @@ clientEvent.on("broadcast_validok", function (data) {
   client.write(result1);
 });
 
-clientEvent.on("broadcast_blockok", function (data) {
+clientEvent.on("goChaegul", function (data) {
+  nextBlock();
+
   let result = [];
   result.push("broadcast");
-  result.push("blockok");
-  const result1 = JSON.stringify(result);
-  client.write(result1);
-});
-
-clientEvent.on("initConnect", function () {
-  let result = [];
-  result.push("initConnect");
+  result.push("findBlock");
+  result.push(data);
   const result1 = JSON.stringify(result);
   client.write(result1);
 });
@@ -112,21 +112,20 @@ client.on("data", function (data) {
   //  내가 받을 데이터 정제하는곳
   const result = clientData(data1);
 
-  // 데이터가 들어왔을 때
-  // 데이터의 목적에 따라 쏴주는 처리였잖아
-
   // 다시 요청하는 곳
-  if (result[0] == "validok") {
-    // 유효하면 다시 ok 보내는 거니까
-    clientEvent.emit("broadcast_validok");
-  } else if (result[0] == "initConnect") {
-    port = result[1];
-    const q = nextBlock(["123"], port);
-    clientEvent.emit("broadcast_findBlock", q);
+  if (result[0] == "broadcast") {
+    if (result[1] == "validok") {
+      // 유효하면 다시 ok 보내는 거니까
+      clientEvent.emit("broadcast_validok");
+    }
+  } else {
+    if (result[0] == "initConnect") {
+      port = result[result.length - 1];
+    }
   }
-
+  // 사실 이건 이제 요청 로그를 잘보기위해 clientData에서 로그까지 받아서
+  // 쏴주는 식으로 해야함
   console.log("요청한 데이터 잘 들어 왔습니다", result);
-
   // client.end();
 });
 
@@ -137,18 +136,30 @@ client.on("end", function () {
 });
 
 clientEvent.emit("initConnect");
+setTimeout(function () {
+  initBlocks();
+  clientEvent.emit("update");
 
-// 웹에서의 어떠한 요청이 들어오는걸
-// 여기에서 다 받아서 write 해주자
+  setTimeout(function () {
+    const abc = nextBlock(["hi"]);
+    setTimeout(function () {
+      console.log(abc);
+      clientEvent.emit("broadcast_findBlock", abc);
+    }, 10);
+  }, 50);
+}, 100);
 
-// clientEvent.emit("broadcast_go_blocks", block);
+// let tasks = ["initConnect", "update"];
+// function next(err, result) {
+//   if (err) throw err;
 
-// 업데이트 요청할 때 블록 길이를 같이 보내서 업데이트할지 안할지 판단할 수 있게하자
-// 첫 실행시에, 세션(메모리), 로컬에 있는 파일에서
-// 블록 불러오는 과정을 1번 거치게 만들자
-// clientEvent.emit("update");
+//   clientEvent.emit("initConnect");
 
-// const q = findBlock();
-
-// const abbbbb = addBlock();
-// console.log(abbbbb);
+//   for (a in tasks) {
+//   }
+//   let currentTask = tasks.shift();
+// ]  if (currentTask) {
+//     currentTask;
+//   }
+// }
+// next();

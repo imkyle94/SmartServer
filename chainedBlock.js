@@ -4,10 +4,18 @@ const cryptojs = require("crypto-js");
 // const { randomBytes } = require('crypto')
 const random = require("random");
 const { get } = require("http");
-const CombinedStream = require("combined-stream");
 
-console.log("야호야호");
 let Blocks = [];
+
+function initBlocks(data) {
+  if (data == "ok") {
+    Blocks = [];
+  } else {
+    Blocks = [createGenesisBlock()];
+  }
+
+  console.log(Blocks);
+}
 
 //예상 채굴 시간과 난이도 조절 단위수를 변수로 설정한다
 const BLOCK_GENERATION_INTERVAL = 10; //second
@@ -45,11 +53,8 @@ class BlockHeader {
 //버전계산하는 함수
 function getVersion() {
   const package = fs.readFileSync("package.json");
-  // console.log(JSON.parse(package).version)
   return JSON.parse(package).version;
 }
-
-//getVersion()
 
 function createGenesisBlock() {
   const version = getVersion();
@@ -65,10 +70,6 @@ function createGenesisBlock() {
   const difficulty = 1; //헤더값에 난이도 아직 0임
   const nonce = 0;
 
-  // console.log("version : %s, timestamp: %d, body : %s",version,timestamp,body)
-  // console.log("previousHash : %d", previousHash);
-  // console.log("merkleRoot : %d", merkleRoot);
-
   const header = new BlockHeader(
     version,
     index,
@@ -80,9 +81,6 @@ function createGenesisBlock() {
   );
   return new Block(header, body);
 }
-
-//const block = createGenesisBlock()
-//console.log(block)
 
 //블록저장할수있는애들, 여러개 들어갈 수 있는 배열을 만들어줌
 
@@ -96,13 +94,6 @@ function getLastBlock() {
   return Blocks[Blocks.length - 1];
 }
 
-//data에는 블록이 들어오는거임, 이블록을 가지고 해시값을 만들어내는 것임
-// function createHash(data){
-// 	const {version, index,previousHash,timestamp,merkleRoot,difficulty,nonce}= data.header
-// 	const blockString = version + index + previousHash + timestamp + merkleRoot + difficulty + nonce
-// 	const hash = cryptojs.SHA256(blockString).toString()
-// 	return hash
-// }
 function createHash(data) {
   //인자로 받은 것중에 헤더를 뽑아내서
   const {
@@ -149,37 +140,18 @@ function calculateHash(
   const hash = cryptojs.SHA256(blockString).toString();
   return hash;
 }
-// const genesisBlock =createGenesisBlock()
-//const testHash = createHash(block)
-// console.log(genesisBlock)
 
 //다음블록 만들었을 때 기존 블록 정보 가져와
-function nextBlock(bodyData, port) {
-  console.log("포트?", port);
-  const qq = fs.readFileSync(`./local/${port}.txt`, "utf8", (err) => {});
-  if (qq.length > 10) {
-    const qqq = JSON.parse(qq);
-    Blocks = qqq.slice();
-    console.log("뜨나");
-    console.log(Blocks);
-  } else {
-    console.log("안뜨나?");
-    Blocks = [createGenesisBlock()];
-  }
-
+function nextBlock(bodyData) {
   //마지막 블럭, 이전블록으로
   const prevBlock = getLastBlock();
   const version = getVersion();
   const index = prevBlock.header.index + 1;
   //이전 블록의 해시값
   const previousHash = createHash(prevBlock);
-
   const timestamp = parseInt(Date.now() / 1000);
-
   const tree = merkle("sha256").sync(bodyData);
   const merkleRoot = tree.root() || "0".repeat(64);
-
-  console.log(merkleRoot);
   //난이도 조절하는 함수 추가
   const difficulty = getDifficulty(getBlocks());
   // const nonce = 0
@@ -194,20 +166,11 @@ function nextBlock(bodyData, port) {
   );
   return new Block(header, bodyData);
 }
-// const block1 = nextBlock(["tranjaction1"])
-// console.log(block1)
 
 function addBlock1(bodyData) {
   const newBlock = nextBlock(bodyData);
   Blocks.push(newBlock);
 }
-
-// addBlock(["transaction1"]);
-// addBlock(["transaction2"]);
-// addBlock(["transaction3"]);
-// addBlock(['transaction4'])
-// addBlock(['transaction5'])
-// console.log(Blocks)
 
 //0103
 // function replaceChain(newBlocks){
@@ -378,4 +341,5 @@ module.exports = {
   addBlock1,
   getVersion,
   createGenesisBlock,
-}; //내보내주는거
+  initBlocks,
+};

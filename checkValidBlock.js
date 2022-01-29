@@ -25,9 +25,6 @@ function isValidBlockStructure(block) {
   );
 }
 
-///dfdfdfdfdfdfdfdfddf
-//dfdfdfdfdff
-
 function isValidNewBlock(newBlock, prevBlock) {
   if (isValidBlockStructure(newBlock) === false) {
     console.log("Invalid Block Structure");
@@ -75,9 +72,6 @@ function isValidChain(newBlocks) {
   }
   return true;
 }
-const block = nextBlock(["new Tr"]);
-const chain = isValidChain(block);
-console.log(chain);
 
 function addBlock(newBlock) {
   if (isValidNewBlock(newBlock, getLastBlock())) {
@@ -86,10 +80,6 @@ function addBlock(newBlock) {
   }
   return false;
 }
-
-// //블럭만들기
-// const block = nextBlock(['new Transaction'])
-// addBlock(block)
 
 module.exports = {
   addBlock,

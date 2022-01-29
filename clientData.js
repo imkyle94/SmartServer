@@ -1,69 +1,66 @@
 const fs = require("fs");
 
 const { getBlocks, Blocks } = require("./chainedBlock");
+const { addBlock } = require("./checkValidBlock");
 
 // 클라이언트가 받을 데이터에 대한 처리
-
+// 이미 데이터가 서버로 어떠한 처리를 거쳐 바로 사용할 수 있게 왔다고 생각
 function clientData(data) {
-  // 이런 애들은 클라가 요청했으니까
-  // let abc = JSON.parse(data);
-  let abc = data;
-
-  let result = [];
-
   // 브로드캐스트 데이터
-  if (abc[0] == "broadcast") {
+  if (data[0] == "broadcast") {
     // 얘는 공지 느낌으로다가 브로드캐스트 일때
-    if (abc[1] == "findBlock") {
+    if (data[1] == "govalidblock") {
+      const result = [];
+
       // 검증하자
       // 검증 되면
+      result.push("broadcast");
       result.push("validok");
       return result;
-    } else if (abc[1] == "blockok") {
-      // 블록업데이트 여기서 찐임 여기가]
-
-      const tt = abc.slice();
-      tt.shift();
-      tt.shift();
-      const name = tt[0];
-      // 얘가 아니라 내 번호여야대
-      tt.shift();
-
-      const text = JSON.stringify(tt);
-
-      fs.unlinkSync(`./local/${name}.txt`, (err) => {});
-      fs.writeFileSync(`./local/${name}.txt`, text, "utf8", (err) => {});
-      // fs.appendFileSync(`./local/${name}.txt`, text, "utf8", (err) => {});
-      result.push("블록 이어붙이기 완료");
-      return result;
+    } else if (data[1] == "goupdateblock") {
+      const data1 = data.slice();
+      data1.shift();
+      data1.shift();
+      // fs.appendFileSync;
+      // 개인이 블록 붙이는 곳
     }
   }
   // 개인으로 요청한 데이터
   else {
-    if (abc[0] == "update") {
-    } else if (abc[0] == "getBlocks") {
-      result.shift();
-      // 그니까 data[0] 제외한것만
-      // 사실 그냥 다쏴줘도 괜찮긴해
-      return result;
-    } else if (abc[0] == "initConnect") {
-      result = data;
+    if (data[0] == "initConnect") {
+      if (data[1]) {
+        const port = data[data.length - 1];
+        const result = data.slice(1, data.length - 1);
+        const text1 = JSON.stringify(result);
+        const text2 = JSON.stringify(port);
+        fs.writeFileSync(`./local/${port}.txt`, text1, "utf8", (err) => {});
+        fs.writeFileSync(
+          `./local/${port}_port.txt`,
+          text2,
+          "utf8",
+          (err) => {}
+        );
+      }
+      return data;
+    } else if (data[0] == "update") {
+      if (data[1]) {
+        const port = data[data.length - 1];
+        const result = data.slice(1, data.length);
+        const text1 = JSON.stringify(result);
+        fs.appendFileSync(`./local/${port}.txt`, text1, "utf8", (err) => {});
+      }
+      return data;
+      // 그리고 여기서 체인드 블록 업데이트까지 해줘야해
+    } else if (data[0] == "getBlocks") {
+      // get블록이잖아 사실 getblocks은 양방향으로 안써도 되지
+      // 내 요청이니까
+      // getblock보다는 블록에 어떠한 수정이 일어나면
+      // 자동으로 update가 일어나게 하는 거니까
+      // getblocks는 사실 필요없는 요청이야
+      // 그래도 걍 써놔 일단
+      const result = [];
       return result;
     }
-    // 여기부터 다시 넣어야함
-    //   let result = Object.assign(abc);
-    result.shift();
-    console.log(result);
-    console.log("이거 나오면 댐");
-    const a1 = getBlocks();
-
-    // 세션에 할지 , 파일에 할지
-    // 이건 내가 정해햐겠다
-    // 내 로컬과 서버 데이터 비교하는 곳
-
-    // 블록이 생성이 되고 있으니까
-
-    return result;
   }
 }
 
