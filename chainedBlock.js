@@ -43,6 +43,7 @@ async function initBlocks() {
       Blocks[i] = new Block(header, body);
     }
   }
+  console.log("이거", Blocks);
 }
 
 //예상 채굴 시간과 난이도 조절 단위수를 변수로 설정한다

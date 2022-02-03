@@ -139,52 +139,77 @@ const client = net.createConnection({ port: 8880 }, function () {
   console.log("고객 연결 되었습니다");
 });
 
+let Jh1 = [];
+let num = 0;
+let n1 = 0;
+let n2 = 0;
+let jh = 0;
+
 client.on("data", function (data) {
-  // process.push;
-  console.log(data);
-  // 같이 들어와서?
+  const data2 = data.toString();
 
-  const data1 = JSON.parse(data, ",");
+  Jh1 = [];
+  jh = 0;
+  n1 = 0;
+  n2 = 0;
+  num = 0;
 
-  console.log(data1);
-  //  내가 받을 데이터 정제하는곳
-  const result = clientData(data1);
-
-  // 다시 요청하는 곳
-  if (result[0] == "broadcast") {
-    if (result[1] == "validok") {
-      // 유효하면 다시 ok 보내는 거니까
-      const data2 = result.slice(2, result.length);
-      clientEvent.emit("broadcast_validok", data2[0]);
-    } else if (result[1] == "validtransactionok") {
-      const data2 = result.slice(2, result.length);
-      clientEvent.emit("broadcast_validtransactionok", data2[0]);
-    } else if (result[1] == "restart") {
-      clientEvent.emit("nextBlock");
+  for (i = 0; i < data2.length; i++) {
+    if (data2[i] == "[") {
+      n1++;
     }
-  } else {
-    if (result[0] == "initConnect") {
-      port = result[result.length - 1];
-    } else if (result[0] == "updateblock") {
-      const data3 = result[1];
-      console.log(data3);
-
-      const text = JSON.stringify(data3.header);
-      fs.appendFileSync(`./local/${port}.txt`, text, "utf8", (err) => {});
-      console.log("채굴 최종 성공!");
-      console.log(result);
-
-      clientEvent.emit("nextBlock");
-    } else if (result[0] == "nextBlock") {
-      clientEvent.emit("nextBlock");
-    } else if (result[0] == "nextTransaction") {
-      clientEvent.emit("broadcast_transaction", result[1]);
+    if (data2[i] == "]") {
+      n2++;
+    }
+    if (n1 == n2) {
+      Jh1[jh] = data2.slice(num, i + 1);
+      num = i + 1;
+      jh++;
     }
   }
-  // 사실 이건 이제 요청 로그를 잘보기위해 clientData에서 로그까지 받아서
-  // 쏴주는 식으로 해야함
-  // console.log("요청한 데이터 잘 들어 왔습니다", result);
-  // client.end();
+
+  for (i = 0; i < Jh1.length; i++) {
+    const data1 = JSON.parse(Jh1[i]);
+
+    //  내가 받을 데이터 정제하는곳
+    const result = clientData(data1);
+
+    // 다시 요청하는 곳
+    if (result[0] == "broadcast") {
+      if (result[1] == "validok") {
+        // 유효하면 다시 ok 보내는 거니까
+        const data2 = result.slice(2, result.length);
+        clientEvent.emit("broadcast_validok", data2[0]);
+      } else if (result[1] == "validtransactionok") {
+        const data2 = result.slice(2, result.length);
+        clientEvent.emit("broadcast_validtransactionok", data2[0]);
+      } else if (result[1] == "restart") {
+        clientEvent.emit("nextBlock");
+      }
+    } else {
+      if (result[0] == "initConnect") {
+        port = result[result.length - 1];
+      } else if (result[0] == "updateblock") {
+        const data3 = result[1];
+        console.log(data3);
+
+        const text = JSON.stringify(data3.header);
+        fs.appendFileSync(`./local/${port}.txt`, text, "utf8", (err) => {});
+        console.log("채굴 최종 성공!");
+        // console.log(result);
+
+        clientEvent.emit("nextBlock");
+      } else if (result[0] == "nextBlock") {
+        clientEvent.emit("nextBlock");
+      } else if (result[0] == "nextTransaction") {
+        clientEvent.emit("broadcast_transaction", result[1]);
+      }
+    }
+    // 사실 이건 이제 요청 로그를 잘보기위해 clientData에서 로그까지 받아서
+    // 쏴주는 식으로 해야함
+    // console.log("요청한 데이터 잘 들어 왔습니다", result);
+    // client.end();
+  }
 });
 
 client.on("end", function () {

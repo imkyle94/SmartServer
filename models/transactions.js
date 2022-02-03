@@ -5,7 +5,7 @@ module.exports = class Transactions extends Sequelize.Model {
     return super.init(
       {
         index: {
-          //   primaryKey: true,
+          //   primarKey: true,
           type: Sequelize.INTEGER,
           allowNull: true,
         },

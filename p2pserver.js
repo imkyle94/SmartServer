@@ -43,99 +43,134 @@ const server = net.createServer(function (client) {
   // 그걸 write해주는 로직도 하나 만들어야 하네
   // 이게 그 블록을 db에 올리고 업데이트하라고 쏘는 그 부분인거지
 
+  let Jh1 = [];
+  let num = 0;
+  let n1 = 0;
+  let n2 = 0;
+  let jh = 0;
+
   client.on("data", async function (data) {
-    const data1 = JSON.parse(data);
-    const result = await serverData(data1);
+    const data2 = data.toString();
 
-    // 클라에서 브로드캐스트 요청했을 때
-    if (data1[0] == "broadcast") {
-      if (result[1] == "govalidblock") {
-        const result1 = JSON.stringify(result);
-        clients.forEach(function (client) {
-          client.write(result1);
-        });
-      } else if (result[1] == "govalidtransaction") {
-        const result1 = JSON.stringify(result);
-        clients.forEach(function (client) {
-          client.write(result1);
-        });
-      } else if (data1[1] == "validok") {
-        vote++;
-        // 51퍼
-        if (vote / clients.length >= 0.51) {
-          const data2 = data1.slice(2, data1.length);
-          const data3 = data2[0];
-
-          // 여기 헤더로 블록 부분
-          Blocks.create(data3.header);
-          for (i = 0; i < pool.length; i++) {
-            console.log("여기뜨냐 제발");
-            console.log(pool.length);
-
-            Transactions.create({
-              id2: pool[i].id,
-              txOutId: pool[i].txIns.txOutId,
-              txOutIndex: pool[i].txIns.txOutIndex,
-              signature: pool[i].txIns.signature,
-              address: pool[i].txOuts.address,
-              amount: pool[i].txOuts.amount,
-            });
-          }
-
-          // for (abc in a[0]) {
-          //   console.log(a[0][abc]);
-          // }
-          // Blocks.create(block);
-
-          // 여기에 트랜잭션 넣을 거야
-
-          let result1 = [
-            "broadcast",
-            "goupdateblock",
-            data3,
-            // pool
-          ];
-
-          const result2 = JSON.stringify(result1);
-          block = pool = [];
-          vote = 0;
-
-          console.log("블록 이어붙이기 성공!");
-          clients.forEach(function (client) {
-            client.write(result2);
-          });
-        } else {
-          console.log("서버에서 보려고 쓴거임 51퍼가 안되었다오");
-        }
-      } else if (data1[1] == "validtransactionok") {
-        if (vote2[data1[2].txIns.txOutIndex] != -1) {
-          vote2[data1[2].txIns.txOutIndex] += 1;
-          if (vote[data1[2].txIns.txOutIndex] / clients.length >= 0.51) {
-            pool.push(data1[2]);
-            vote2[data1[2].txIns.txOutIndex] = -1;
-          }
-        }
+    Jh1 = [];
+    jh = 0;
+    n1 = 0;
+    n2 = 0;
+    num = 0;
+    for (i = 0; i < data2.length; i++) {
+      if (data2[i] == "[") {
+        n1++;
+      }
+      if (data2[i] == "]") {
+        n2++;
+      }
+      if (n1 == n2) {
+        Jh1[jh] = data2.slice(num, i + 1);
+        num = i + 1;
+        jh++;
       }
     }
-    // 브로드캐스트 외 요청했을 때
-    else {
-      if (result[0] == "initConnect") {
-        result.push(client.remotePort);
-        const result1 = JSON.stringify(result);
-        client.write(result1);
-      } else if (result[0] == "update") {
-        result.push(client.remotePort);
 
-        const result1 = JSON.stringify(result);
-        client.write(result1);
-      } else if (result[0] == "goChaegul") {
-        console.log(client.remotePort, "번 포트 채굴 시작");
-        const result1 = JSON.stringify(result);
-        client.write(result1);
-      } else if (result[0] == "goTrade") {
-        console.log("트랜잭션 하기 시작");
-        const result1 = JSON.stringify(result);
-        client.write(result1);
+    for (i = 0; i < Jh1.length; i++) {
+      const data1 = JSON.parse(Jh1[i]);
+      const result = await serverData(data1);
+
+      // 클라에서 브로드캐스트 요청했을 때
+      if (data1[0] == "broadcast") {
+        if (result[1] == "govalidblock") {
+          const result1 = JSON.stringify(result);
+          clients.forEach(function (client) {
+            client.write(result1);
+          });
+        } else if (result[1] == "govalidtransaction") {
+          const result1 = JSON.stringify(result);
+          clients.forEach(function (client) {
+            client.write(result1);
+          });
+        } else if (data1[1] == "validok") {
+          vote++;
+          // 51퍼
+          if (vote / clients.length >= 0.51) {
+            const data2 = data1.slice(2, data1.length);
+            const data3 = data2[0];
+
+            // 여기 헤더로 블록 부분
+            await Blocks.create(data3.header);
+
+            console.log("풀", pool);
+            for (i = 0; i < pool.length; i++) {
+              await Transactions.create({
+                index: data3.header.index,
+                id2: pool[i].id,
+                txOutId: pool[i].txIns.txOutId,
+                txOutIndex: pool[i].txIns.txOutIndex,
+                signature: pool[i].txIns.signature,
+                address: pool[i].txOuts.address,
+                amount: pool[i].txOuts.amount,
+              });
+              console.log("풀 DB 완료");
+
+              if (i == pool.length - 1) {
+                pool = [];
+              }
+            }
+
+            // for (abc in a[0]) {
+            //   console.log(a[0][abc]);
+            // }
+            // Blocks.create(block);
+
+            // 여기에 트랜잭션 넣을 거야
+
+            let result1 = [
+              "broadcast",
+              "goupdateblock",
+              data3,
+              // pool
+            ];
+
+            const result2 = JSON.stringify(result1);
+            block = [];
+            vote = 0;
+
+            console.log("블록 이어붙이기 성공!");
+            clients.forEach(function (client) {
+              client.write(result2);
+            });
+          } else {
+            console.log("서버에서 보려고 쓴거임 51퍼가 안되었다오");
+          }
+        } else if (data1[1] == "validtransactionok") {
+          // if (vote2[data1[2].txIns.txOutIndex] != -1) {
+          // vote2[data1[2].txIns.txOutIndex] += 1;
+          // if (vote[data1[2].txIns.txOutIndex] / clients.length >= 0.51) {
+          // console.log("여기뜨면 끝");
+          pool.push(data1[2]);
+          // vote2[data1[2].txIns.txOutIndex] = -1;
+          // }
+          // }
+        }
+      }
+      // 브로드캐스트 외 요청했을 때
+      else {
+        if (result[0] == "initConnect") {
+          result.push(client.remotePort);
+          const result1 = JSON.stringify(result);
+          client.write(result1);
+        } else if (result[0] == "update") {
+          result.push(client.remotePort);
+
+          const result1 = JSON.stringify(result);
+          client.write(result1);
+        } else if (result[0] == "goChaegul") {
+          console.log(client.remotePort, "번 포트 채굴 시작");
+          const result1 = JSON.stringify(result);
+          client.write(result1);
+        } else if (result[0] == "goTrade") {
+          console.log("트랜잭션 하기 시작");
+          const result1 = JSON.stringify(result);
+          client.write(result1);
+        }
       }
     }
   });
