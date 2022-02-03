@@ -2,8 +2,20 @@ const events = require("events");
 const util = require("util");
 const net = require("net");
 
-let tr = ["트랜잭션임"];
-let result = [];
+const { makeTransaction } = require("./transaction");
+
+const bcclientEvent = new events.EventEmitter();
+
+bcclientEvent.on("broadcast_goTransaction", function (data) {
+  let result = [];
+  result.push("broadcast");
+  result.push("goTransaction");
+  result.push(data);
+
+  bcclient.write(result);
+  // 브로드캐스트 할때 얘네한테는 안오도록 해야겠다
+});
+
 // 얘는 거래소
 const bcclient = net.createConnection({ port: 8880 }, function () {
   console.log("거래 클라이언트 되었습니다");
@@ -18,18 +30,4 @@ bcclient.on("end", function () {
   console.log("거래 클라이언트 종료");
 });
 
-// 웹에서의 어떠한 요청이 들어오는걸
-// 여기에서 다 받아서 write 해주자
-
-// 트랜잭션을 서버로 우선 쏘는 걸 할건데
-
-// result.push("realTransactions");
-result.push("broadcast");
-result.push(tr);
-
-let result1 = JSON.stringify(result);
-
-console.log(result);
-console.log(result1);
-
-bcclient.write(result1);
+// bcclientEvent.emit("goTransaction", a);

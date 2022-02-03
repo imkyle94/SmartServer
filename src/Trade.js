@@ -5,26 +5,26 @@ import { useState } from "react";
 import { Navigate, Outlet, Link } from "react-router-dom";
 import axios from "axios";
 
-function Join() {
+function Trade() {
   const [isRedirect, setIsRedirect] = useState(false);
   const { register, handleSubmit } = useForm();
 
   const onSubmit = async (data) => {
     try {
-      await axios.post("http://localhost:8080/auth/join", data);
+      await axios.post("http://localhost:8080/apis/trade", data);
       setIsRedirect(true);
-      console.log("조인 클라이언트 성공");
+      console.log("트레이드 클라이언트 성공");
     } catch (err) {
-      console.log("조인 클라이언트 실패");
+      console.log("트레이드 클라이언트 실패");
     }
   };
 
   return (
     <div>
-      <h2>Join</h2>
+      <h2>Trade</h2>
       <form onSubmit={handleSubmit(onSubmit)}>
-        <input {...register("email")} placeholder="이메일" />
-        <input {...register("password")} placeholder="비밀번호" />
+        <input {...register("address")} placeholder="보내는곳" />
+        <input {...register("amount")} placeholder="얼마나" />
         <input type="submit" />
       </form>
       {isRedirect && <Navigate to="/" />}
@@ -32,4 +32,4 @@ function Join() {
   );
 }
 
-export default Join;
+export default Trade;

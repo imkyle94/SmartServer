@@ -10,23 +10,73 @@
 
 const express = require("express");
 const passport = require("passport");
-const { isLoggedIn, isNotLoggedIn } = require("./middlewares");
+const { isLoggedIn, isNotLoggedIn } = require("../middlewares");
 const axios = require("axios");
 
-const Users = require("../models/users");
-const Blocks = require("../models/blocks");
+const Users = require("../../models/users");
+const Blocks = require("../../models/blocks");
 
 const dotenv = require("dotenv");
 dotenv.config();
 
-const { dbscheme, makedb } = require("../dblization");
-const { getBlocks, createGenesisBlock } = require("../chainedBlock");
+// const { dbscheme, makedb } = require("../../dblization");
+const { getBlocks, createGenesisBlock } = require("../../chainedBlock");
+
+const {
+  initWallet,
+  getPublicKeyFromWallet,
+  getPrivateKeyFromWallet,
+} = require("../../encryption");
+const { makeTransaction } = require("../../transaction");
 
 const router = express.Router();
 
 // 아직은 로그인 미들웨어 안쓰지만 나중에 쓸 수 있으니
 router.get("/", () => {
   //여기에 로딩이 되도록 적어야겠네
+});
+
+router.get("/aa", (req, res) => {
+  const cclient = net.createConnection({ port: 8880 }, function () {
+    console.log("고객 연결 되었습니다");
+  });
+
+  clientEvent.emit("initConnect");
+});
+
+router.post("/trade", (req, res) => {
+  const data = req.body;
+  let my = [];
+  my[0] = req.user.email;
+  my[1] = 3;
+  const privateKey = getPrivateKeyFromWallet();
+  const transaction = makeTransaction(data, my, privateKey);
+
+  // 여기서 실행하던 뭘 넘기던 해야대
+  console.log(transaction);
+
+  res.json(data);
+});
+
+router.post("/wallet", (req, res) => {
+  initWallet(req.user.email);
+  // 세션 처리를 어케해줄까?
+
+  res.json(["지갑 생성 성공!"]);
+});
+
+router.post("/cg", (req, res) => {
+  const { clientEvent } = require("../p2pclient");
+  // 그리고 이걸 세션이던 미들웨어던으로 처리해버리자
+
+  // 뷰에 소켓 연결되었습니다 하나 쏴주고
+  // 되었을 때 메뉴 여러개 만들자
+
+  // 요청을 하면 백에서든 소켓 구현이 잘되어서 양방향으로 받아지고 있음
+  // 이걸 프론트에 올릴때 방법을 지금 어떻게 할지 생각하는중이다
+  // clientEvent.emit("initConnect");
+
+  // clientEvent.emit("initConnect");
 });
 
 router.post("/make", async (req, res) => {

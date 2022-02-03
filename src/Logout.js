@@ -6,30 +6,29 @@ import { TestContext } from "./TestContext";
 import { Navigate } from "react-router-dom";
 import axios from "axios";
 
-function Login() {
+function Logout() {
   const [isRedirect, setIsRedirect] = useState(false);
   const { register, handleSubmit } = useForm();
   const { email, setEmailHandler } = useContext(TestContext);
 
   const onSubmit = async (data) => {
     try {
-      const data1 = await axios.post("http://localhost:8080/auth/login", data);
+      const data1 = await axios.post("http://localhost:8080/auth/logout", data);
 
-      setEmailHandler(data1.data);
+      setEmailHandler("");
       setIsRedirect(true);
 
-      console.log("로그인 클라이언트 성공");
+      console.log("로그아웃 클라이언트 성공");
     } catch (err) {
-      console.log("로그인 클라이언트 실패");
+      console.log("로그아웃 클라이언트 실패");
     }
   };
 
   return (
     <div>
-      <h2>Login</h2>
+      <h2>Logout</h2>
       <form onSubmit={handleSubmit(onSubmit)}>
-        <input {...register("email")} placeholder="이메일" />
-        <input {...register("password")} placeholder="비밀번호" />
+        <input {...register("logout")} placeholder="로그아웃하기" />
         <input type="submit" />
       </form>
       {isRedirect && <Navigate to="/" />}
@@ -37,4 +36,4 @@ function Login() {
   );
 }
 
-export default Login;
+export default Logout;

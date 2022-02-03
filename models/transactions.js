@@ -9,17 +9,29 @@ module.exports = class Transactions extends Sequelize.Model {
           type: Sequelize.INTEGER,
           allowNull: true,
         },
-        in: {
+        id2: {
           allowNull: true,
           type: Sequelize.STRING(500),
         },
-        out: {
+        txOutId: {
           allowNull: true,
           type: Sequelize.STRING(500),
         },
-        price: {
+        txOutIndex: {
           allowNull: true,
           type: Sequelize.INTEGER,
+        },
+        signature: {
+          allowNull: true,
+          type: Sequelize.STRING(500),
+        },
+        address: {
+          allowNull: true,
+          type: Sequelize.STRING(500),
+        },
+        amount: {
+          allowNull: true,
+          type: Sequelize.STRING(500),
         },
       },
       {

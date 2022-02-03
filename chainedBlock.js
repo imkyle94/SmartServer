@@ -5,16 +5,44 @@ const cryptojs = require("crypto-js");
 const random = require("random");
 const { get } = require("http");
 
-let Blocks = [];
+const dbBlocks = require("./models/blocks");
 
-function initBlocks(data) {
-  if (data == "ok") {
+// 블록 아래로 내려놈
+
+async function initBlocks() {
+  const dbBlock = await dbBlocks.findAll();
+  if (dbBlock.length > 0) {
     Blocks = [];
-  } else {
-    Blocks = [createGenesisBlock()];
-  }
+    let version;
+    let index;
+    let previousHash;
+    let timestamp;
+    let merkleRoot;
+    let difficulty;
+    let nonce;
+    let header;
+    let body;
 
-  console.log(Blocks);
+    for (i = 0; i < dbBlock.length; i++) {
+      (version = dbBlock[i].version),
+        (index = dbBlock[i].index),
+        (previousHash = dbBlock[i].previousHash),
+        (timestamp = dbBlock[i].timestamp),
+        (merkleRoot = dbBlock[i].merkleRoot),
+        (difficulty = dbBlock[i].difficulty),
+        (nonce = dbBlock[i].nonce),
+        (header = new BlockHeader(
+          version,
+          index,
+          previousHash,
+          timestamp,
+          merkleRoot,
+          difficulty,
+          nonce
+        ));
+      Blocks[i] = new Block(header, body);
+    }
+  }
 }
 
 //예상 채굴 시간과 난이도 조절 단위수를 변수로 설정한다
@@ -67,7 +95,7 @@ function createGenesisBlock() {
   const tree = merkle("sha256").sync(body); //바디값불러와서 sha256으로 암호화
   const merkleRoot = tree.root() || "0".repeat(64);
   //루트값없으면 || 뒤에값 출력
-  const difficulty = 1; //헤더값에 난이도 아직 0임
+  const difficulty = 18; //헤더값에 난이도 아직 0임
   const nonce = 0;
 
   const header = new BlockHeader(
@@ -82,6 +110,7 @@ function createGenesisBlock() {
   return new Block(header, body);
 }
 
+let Blocks = [createGenesisBlock()];
 //블록저장할수있는애들, 여러개 들어갈 수 있는 배열을 만들어줌
 
 //현재 있는 블록을 다 리턴해주는 함수, 블럭목록 부르는 함수
@@ -225,8 +254,6 @@ function hashMatchesDifficulty(hash, difficulty) {
   const hashBinary = hexToBinary(hash.toUpperCase());
   //difficulty 난이도가 높아짐에 따라 0개수가 늘어남
 
-  console.log(hashBinary);
-  console.log("난이도 : ", difficulty);
   const requirePrefix = "0".repeat(difficulty);
 
   //높으면 높을수록 조건을 맞추기가 까다로워짐(nonce값과 time값이 바뀌면서 암호화값이 달라진다.)

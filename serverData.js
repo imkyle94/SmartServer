@@ -19,6 +19,23 @@ async function serverData(data) {
       data1.shift();
       const result = ["broadcast", "govalidblock", ...data1];
       return result;
+    } else if (data[1] == "validok") {
+      const data1 = data.slice(2, data.length);
+      // 일부러 써논거임 result[1] undefined 라서
+      const result = ["broadcast", "goblock!"];
+      return result;
+    } // 2 거래소에서 트랜잭션들이 넘어올 때
+    else if (data[1] == "transaction") {
+      const data1 = data.slice();
+      data1.shift();
+      data1.shift();
+      const result = ["broadcast", "govalidtransaction", data1[0]];
+      return result;
+    } else if (data[1] == "validtransactionok") {
+      const data1 = data.slice(2, data.length);
+      // 일부러 써논거임 result[1] undefined 라서
+      const result = ["broadcast", "gotransaction!"];
+      return result;
     }
   }
   // 브로드캐스트 외 요청
@@ -50,14 +67,15 @@ async function serverData(data) {
       const result = [];
       result.push(db);
       return result;
-    }
-    // 2 거래소에서 트랜잭션들이 넘어올 때
-    else if (data[0] == "realTransactions") {
-      // 여기서 풀에 넣는 행위 할 거임
-      // 이건 p2pserver에서 전역으로 관리해야겠네
-      // 풀에 넣자(pool)
-      // return 데이터;
-      return;
+    } else if (data[0] == "goChaegul") {
+      const result = [];
+      result.push("goChaegul");
+      return result;
+    } else if (data[0] == "goTrade") {
+      const result = [];
+      result.push("goTrade");
+      result.push(data[1]);
+      return result;
     }
   }
 }

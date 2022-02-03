@@ -5,11 +5,13 @@ const fs = require("fs");
 const path = require("path");
 
 var port;
-let proces = [];
 const { clientData } = require("./clientData");
 
 const { initBlocks, nextBlock } = require("./chainedBlock");
 // const { addBlock } = require("./checkValidBlock");
+
+function CC() {}
+util.inherits(CC, events.EventEmitter);
 
 const clientEvent = new events.EventEmitter();
 // clientEvent.emit으로 실행시킨다
@@ -54,34 +56,10 @@ clientEvent.on("update", function () {
 });
 
 clientEvent.on("initConnect", function () {
-  initBlocks();
   let result = [];
   result.push("initConnect");
   const result1 = JSON.stringify(result);
   client.write(result1);
-});
-
-clientEvent.on("goChaegul", function () {
-  let result = [];
-  result.push("goChaegul");
-  const result1 = JSON.stringify(result);
-  client.write(result1);
-});
-clientEvent.on("goTrade", function (data) {
-  let result = [];
-  result.push("goTrade");
-  result.push(data);
-  const result1 = JSON.stringify(result);
-  client.write(result1);
-});
-
-// 여기서부터 보면 댐
-
-clientEvent.on("nextBlock", function () {
-  console.log("여기 뜨면 대박");
-  const data = nextBlock(["111"]);
-
-  clientEvent.emit("broadcast_findBlock", data);
 });
 
 clientEvent.on("login", function () {
@@ -109,17 +87,7 @@ clientEvent.on("broadcast_validok", function (data) {
   let result = [];
   result.push("broadcast");
   result.push("validok");
-  result.push(data);
-
-  const result1 = JSON.stringify(result);
-  client.write(result1);
-});
-
-clientEvent.on("broadcast_transaction", function (data) {
-  let result = [];
-  result.push("broadcast");
-  result.push("transaction");
-  result.push(data);
+  // result.push(data);
 
   const result1 = JSON.stringify(result);
   client.write(result1);
@@ -129,8 +97,18 @@ clientEvent.on("broadcast_validtransactionok", function (data) {
   let result = [];
   result.push("broadcast");
   result.push("validtransactionok");
-  result.push(data);
 
+  const result1 = JSON.stringify(result);
+  client.write(result1);
+});
+
+clientEvent.on("goChaegul", function (data) {
+  nextBlock();
+
+  let result = [];
+  result.push("broadcast");
+  result.push("findBlock");
+  result.push(data);
   const result1 = JSON.stringify(result);
   client.write(result1);
 });
@@ -140,13 +118,8 @@ const client = net.createConnection({ port: 8880 }, function () {
 });
 
 client.on("data", function (data) {
-  // process.push;
-  console.log(data);
-  // 같이 들어와서?
+  const data1 = JSON.parse(data);
 
-  const data1 = JSON.parse(data, ",");
-
-  console.log(data1);
   //  내가 받을 데이터 정제하는곳
   const result = clientData(data1);
 
@@ -154,36 +127,21 @@ client.on("data", function (data) {
   if (result[0] == "broadcast") {
     if (result[1] == "validok") {
       // 유효하면 다시 ok 보내는 거니까
-      const data2 = result.slice(2, result.length);
-      clientEvent.emit("broadcast_validok", data2[0]);
+      clientEvent.emit("broadcast_validok");
     } else if (result[1] == "validtransactionok") {
-      const data2 = result.slice(2, result.length);
-      clientEvent.emit("broadcast_validtransactionok", data2[0]);
-    } else if (result[1] == "restart") {
-      clientEvent.emit("nextBlock");
+      clientEvent.emit("broadcast_validtransactionok");
     }
   } else {
     if (result[0] == "initConnect") {
       port = result[result.length - 1];
     } else if (result[0] == "updateblock") {
-      const data3 = result[1];
-      console.log(data3);
-
-      const text = JSON.stringify(data3.header);
+      const text = JSON.stringify(result);
       fs.appendFileSync(`./local/${port}.txt`, text, "utf8", (err) => {});
-      console.log("채굴 최종 성공!");
-      console.log(result);
-
-      clientEvent.emit("nextBlock");
-    } else if (result[0] == "nextBlock") {
-      clientEvent.emit("nextBlock");
-    } else if (result[0] == "nextTransaction") {
-      clientEvent.emit("broadcast_transaction", result[1]);
     }
   }
   // 사실 이건 이제 요청 로그를 잘보기위해 clientData에서 로그까지 받아서
   // 쏴주는 식으로 해야함
-  // console.log("요청한 데이터 잘 들어 왔습니다", result);
+  console.log("요청한 데이터 잘 들어 왔습니다", result);
   // client.end();
 });
 
@@ -195,7 +153,7 @@ client.on("end", function () {
 
 // clientEvent.emit("initConnect");
 // setTimeout(function () {
-// initBlocks();
+//   initBlocks();
 //   clientEvent.emit("update");
 
 //   setTimeout(function () {

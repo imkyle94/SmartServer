@@ -17,6 +17,8 @@ const passportConfig = require("./passport");
 // 라우터 선언
 const indexRouter = require("./routers/index.js");
 const authRouter = require("./routers/auth");
+const apisRouter = require("./routers/apis/index");
+const blockRouter = require("./routers/apis/block");
 // 모든 URL에 대한 Router
 const otherRouter = require("./routers/other.js");
 
@@ -69,6 +71,8 @@ app.use(passport.session());
 // URL과 라우터 매칭
 app.use("/", indexRouter);
 app.use("/auth", authRouter);
+app.use("/apis", apisRouter);
+app.use("/apis/block", blockRouter);
 
 // ERROR 메세지 창
 app.use((err, req, res, next) => {

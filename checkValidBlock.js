@@ -3,13 +3,16 @@
 //이전블록의 해시값과 현재 블록의 이전해시가 같은지
 //데이터 필드로부터 계산한 머클루트와 블록헤더의 머클루트가 동일한지
 //이 조건 다 맞으면 올바른 구조체이다
+
 const {
   Blocks,
   getLastBlock,
   createHash,
+  createGenesisBlock,
   nextBlock,
   isValidTimestamp,
 } = require("./chainedBlock.js");
+
 const merkle = require("merkle");
 
 function isValidBlockStructure(block) {
@@ -74,13 +77,19 @@ function isValidChain(newBlocks) {
 }
 
 function addBlock(newBlock) {
+  console.log(newBlock);
   if (isValidNewBlock(newBlock, getLastBlock())) {
+    console.log("여기부터 봐바");
+    console.log(Blocks);
     Blocks.push(newBlock);
+
+    console.log(Blocks);
+    // console.log(Blocks);
+
     return true;
   }
   return false;
 }
-
 module.exports = {
   addBlock,
 };

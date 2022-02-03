@@ -1,35 +1,31 @@
 import { Button, Form } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { useForm } from "react-hook-form";
-import { useContext, useState } from "react";
-import { TestContext } from "./TestContext";
-import { Navigate } from "react-router-dom";
+import { useState } from "react";
+import { Navigate, Outlet, Link } from "react-router-dom";
 import axios from "axios";
 
-function Login() {
+function Wallet() {
   const [isRedirect, setIsRedirect] = useState(false);
   const { register, handleSubmit } = useForm();
-  const { email, setEmailHandler } = useContext(TestContext);
 
   const onSubmit = async (data) => {
     try {
-      const data1 = await axios.post("http://localhost:8080/auth/login", data);
-
-      setEmailHandler(data1.data);
+      await axios.post("http://localhost:8080/apis/wallet", data);
       setIsRedirect(true);
-
-      console.log("로그인 클라이언트 성공");
+      console.log("월렛 클라이언트 성공");
     } catch (err) {
-      console.log("로그인 클라이언트 실패");
+      console.log("월렛 클라이언트 실패");
     }
   };
 
   return (
     <div>
-      <h2>Login</h2>
+      <h2>Wallet</h2>
+
       <form onSubmit={handleSubmit(onSubmit)}>
         <input {...register("email")} placeholder="이메일" />
-        <input {...register("password")} placeholder="비밀번호" />
+
         <input type="submit" />
       </form>
       {isRedirect && <Navigate to="/" />}
@@ -37,4 +33,4 @@ function Login() {
   );
 }
 
-export default Login;
+export default Wallet;
