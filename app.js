@@ -37,8 +37,16 @@ sequelize
   });
 
 // PORT setting
-const PORT = 70;
+const PORT = 80;
 app.set("port", process.env.PORT || PORT);
+
+if (process.env.NODE_ENV === "production") {
+  app.use(morgan("combined"));
+  app.use(helmet());
+  app.use(hpp());
+} else {
+  app.use(morgan("dev"));
+}
 
 app.use("/", express.static(path.join(__dirname, "./build")));
 
@@ -47,19 +55,22 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser(process.env.COOKIE_SECRET));
 
 // req.session 객체 생성
-app.use(
-  session({
-    resave: false,
-    saveUninitialized: false,
-    secret: process.env.COOKIE_SECRET,
-    cookie: {
-      httpOnly: true,
-      secure: false,
-    },
-    // redis저장 설정
-    // store: new RedisStore({ client: redisClient }),
-  })
-);
+const sessionOption = {
+  resave: false,
+  saveUninitialized: false,
+  secret: process.env.COOKIE_SECRET,
+  cookie: {
+    httpOnly: true,
+    secure: false,
+  },
+  // redis저장 설정
+  // store: new RedisStore({ client: redisClient }),
+};
+if (process.env.NODE_ENV === "production") {
+  sessionOption.proxy = true;
+  // sessionOption.cookie.secure = true;
+}
+app.use(session(sessionOption));
 
 // passport setting
 passportConfig();
@@ -75,9 +86,20 @@ app.use("/apis", apisRouter);
 app.use("/apis/block", blockRouter);
 
 // ERROR 메세지 창
+app.use((req, res, next) => {
+  const error = new Error(`${req.method} ${req.url} 라우터가 없습니다.`);
+  error.status = 404;
+  // logger.info("hello");
+  // logger.error(error.message);
+  next(error);
+});
+
 app.use((err, req, res, next) => {
-  res.status(err.static || 500);
-  res.send(err);
+  console.error(err);
+  res.locals.message = err.message;
+  res.locals.error = process.env.NODE_ENV !== "production" ? err : {};
+  res.status(err.status || 500);
+  res.render("error");
 });
 
 app.use(otherRouter);

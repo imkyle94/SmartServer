@@ -14,6 +14,8 @@ import axios from "axios";
 // 막아뒀네 아하 이유가 뭘까
 // 계층 공부하면서 연결될 내용이겠다
 
+const URL = "http://localhost:8080";
+
 function Block() {
   const [isRedirect, setIsRedirect] = useState(false);
   const { register, handleSubmit } = useForm();
@@ -25,9 +27,7 @@ function Block() {
 
   const onSubmit1 = async (data) => {
     try {
-      const data = await axios.post(
-        "http://localhost:8080/apis/block/initConnect"
-      );
+      const data = await axios.post(URL + "/apis/block/initConnect");
       console.log("초기연결 클라이언트 성공");
     } catch (err) {
       console.log("초기연결 클라이언트 실패");
@@ -35,10 +35,9 @@ function Block() {
   };
   const onSubmit2 = async (data) => {
     try {
-      const data = await axios.post(
-        "http://localhost:8080/apis/block/initWallet",
-        { email: email }
-      );
+      const data = await axios.post(URL + "/apis/block/initWallet", {
+        email: email,
+      });
 
       console.log("초기지갑 클라이언트 성공");
     } catch (err) {
@@ -47,7 +46,7 @@ function Block() {
   };
   const onSubmit3 = async (data) => {
     try {
-      const data = await axios.post("http://localhost:8080/apis/block/Chaegul");
+      const data = await axios.post(URL + "/apis/block/Chaegul");
       console.log("채굴 클라이언트 성공");
     } catch (err) {
       console.log("채굴 클라이언트 실패");
@@ -55,7 +54,7 @@ function Block() {
   };
   const onSubmit4 = async (data) => {
     try {
-      await axios.post("http://localhost:8080/apis/block/initTrade", data);
+      await axios.post(URL + "/apis/block/initTrade", data);
       console.log("트레이드 클라이언트 성공");
     } catch (err) {
       console.log("트레이드 클라이언트 실패");
