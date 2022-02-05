@@ -43,8 +43,9 @@ function isValidNewBlock(newBlock, prevBlock) {
     console.log("Invalid previousHash");
     return false;
   } else if (
-    (newBlock.body.length === 0 &&
-      ("0", repeat(64) !== newBlock.header.merkleRoot)) ||
+    // 여기 봐야대
+    //       "0".repeat(64) !== newBlock.header.merkleRoot
+    newBlock.body.length === 0 ||
     (newBlock.body.length !== 0 &&
       merkle("sha256").sync(newBlock.body).root() !==
         newBlock.header.merkleRoot)
@@ -77,15 +78,8 @@ function isValidChain(newBlocks) {
 }
 
 function addBlock(newBlock) {
-  console.log(newBlock);
   if (isValidNewBlock(newBlock, getLastBlock())) {
-    console.log("여기부터 봐바");
-    console.log(Blocks);
     Blocks.push(newBlock);
-
-    console.log(Blocks);
-    // console.log(Blocks);
-
     return true;
   }
   return false;

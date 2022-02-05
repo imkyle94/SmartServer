@@ -5,7 +5,9 @@ const fs = require("fs");
 const path = require("path");
 
 var port;
-let proces = [];
+
+const { getPool } = require("./p2pserver");
+
 const { clientData } = require("./clientData");
 
 const { initBlocks, nextBlock } = require("./chainedBlock");
@@ -78,10 +80,21 @@ clientEvent.on("goTrade", function (data) {
 // 여기서부터 보면 댐
 
 clientEvent.on("nextBlock", function () {
-  console.log("여기 뜨면 대박");
-  const data = nextBlock(["111"]);
+  const abcd = getPool();
+  let result = [];
 
-  clientEvent.emit("broadcast_findBlock", data);
+  for (i = 0; i < abcd.length; i++) {
+    result[i] = JSON.stringify(abcd[i]);
+  }
+
+  if (abcd.length > 0) {
+    const data = nextBlock(result);
+    clientEvent.emit("broadcast_findBlock", data);
+  } else {
+    setTimeout(function () {
+      clientEvent.emit("nextBlock");
+    }, 5000);
+  }
 });
 
 clientEvent.on("login", function () {
@@ -168,11 +181,13 @@ client.on("data", function (data) {
     }
   }
 
+  console.log(Jh1.length);
   for (i = 0; i < Jh1.length; i++) {
     const data1 = JSON.parse(Jh1[i]);
 
     //  내가 받을 데이터 정제하는곳
     const result = clientData(data1);
+    console.log(result);
 
     // 다시 요청하는 곳
     if (result[0] == "broadcast") {
@@ -191,12 +206,13 @@ client.on("data", function (data) {
         port = result[result.length - 1];
       } else if (result[0] == "updateblock") {
         const data3 = result[1];
-        console.log(data3);
 
-        const text = JSON.stringify(data3.header);
+        // 여기는 아직 신경 안써도 되는거다
+        const data5 = result.slice(1, result.length);
+        const text = JSON.stringify(data5);
+
         fs.appendFileSync(`./local/${port}.txt`, text, "utf8", (err) => {});
-        console.log("채굴 최종 성공!");
-        // console.log(result);
+        console.log("블럭 로컬 저장 완료 채굴 최종 성공!");
 
         clientEvent.emit("nextBlock");
       } else if (result[0] == "nextBlock") {

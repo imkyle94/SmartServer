@@ -43,7 +43,6 @@ async function initBlocks() {
       Blocks[i] = new Block(header, body);
     }
   }
-  console.log("이거", Blocks);
 }
 
 //예상 채굴 시간과 난이도 조절 단위수를 변수로 설정한다
@@ -96,7 +95,7 @@ function createGenesisBlock() {
   const tree = merkle("sha256").sync(body); //바디값불러와서 sha256으로 암호화
   const merkleRoot = tree.root() || "0".repeat(64);
   //루트값없으면 || 뒤에값 출력
-  const difficulty = 18; //헤더값에 난이도 아직 0임
+  const difficulty = 15; //헤더값에 난이도 아직 0임
   const nonce = 0;
 
   const header = new BlockHeader(
@@ -294,6 +293,7 @@ function findBlock(
       );
     }
     nonce++;
+    // console.log(nonce);
   }
 }
 
@@ -344,7 +344,6 @@ function isValidTimestamp(newBlock, prevBlock) {
     "시간 경과:",
     newBlock.header.timestamp - prevBlock.header.timestamp
   );
-  console.log(getCurrentTimestamp());
   //5이내에 또 만드는 걸 안되게 방지!
   if (newBlock.header.timestamp - prevBlock.header.timestamp < 5) {
     return false;

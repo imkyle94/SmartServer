@@ -13,7 +13,6 @@ function clientData(data) {
     if (data[1] == "govalidblock") {
       const data1 = data.slice(2, data.length);
 
-      // 이거 좀 봐야해
       const abcde = addBlock(data1[0]);
       // 여기까지 됨
       if (abcde) {

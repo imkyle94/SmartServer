@@ -24,6 +24,10 @@ let vote2 = [0];
 let block = [];
 let pool = [];
 
+function getPool() {
+  return pool;
+}
+
 const server = net.createServer(function (client) {
   console.log("서버 연결");
 
@@ -94,10 +98,10 @@ const server = net.createServer(function (client) {
             const data2 = data1.slice(2, data1.length);
             const data3 = data2[0];
 
+            let result1 = ["broadcast", "goupdateblock", data3];
             // 여기 헤더로 블록 부분
             await Blocks.create(data3.header);
 
-            console.log("풀", pool);
             for (i = 0; i < pool.length; i++) {
               await Transactions.create({
                 index: data3.header.index,
@@ -108,26 +112,13 @@ const server = net.createServer(function (client) {
                 address: pool[i].txOuts.address,
                 amount: pool[i].txOuts.amount,
               });
-              console.log("풀 DB 완료");
+              console.log("풀 DB create 완료");
+              result1.push(pool[i]);
 
               if (i == pool.length - 1) {
                 pool = [];
               }
             }
-
-            // for (abc in a[0]) {
-            //   console.log(a[0][abc]);
-            // }
-            // Blocks.create(block);
-
-            // 여기에 트랜잭션 넣을 거야
-
-            let result1 = [
-              "broadcast",
-              "goupdateblock",
-              data3,
-              // pool
-            ];
 
             const result2 = JSON.stringify(result1);
             block = [];
@@ -179,5 +170,7 @@ const server = net.createServer(function (client) {
     console.log("클라 누구 끊킴");
   });
 });
+
+module.exports = { getPool };
 
 server.listen(8880);
